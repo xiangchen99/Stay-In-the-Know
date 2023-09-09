@@ -79,7 +79,8 @@ while True:
   # Press ESC to quit
   if cv.waitKey(1) == 27: 
     break
- # Stop filming
+ 
+# Stop filming
 cam.release()
  
 # Close down OpenCV
