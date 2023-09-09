@@ -61,7 +61,7 @@ while True:
  
       # If you want all classes to be labeled instead of just forks, spoons, and knives, 
       # remove this line below (i.e. remove line 65)
-      if classes[idx] == 'fork' or classes[idx] == 'spoon' or classes[idx] == 'knife':          
+      if classes[idx] == 'person' or classes[idx] == 'cell phone' or classes[idx] == 'book':          
         left = detection[3] * cols
         top = detection[4] * rows
         right = detection[5] * cols
