@@ -12,7 +12,17 @@ import threading
 import pygame
 pygame.mixer.init()
 import datetime
- 
+import time
+import os
+from twilio.rest import Client
+
+
+# Find your Account SID and Auth Token at twilio.com/console
+# and set the environment variables. See http://twil.io/secure
+account_sid = os.environ['TWILIO_ACCOUNT_SID'] = 'AC10b029395650ed8afd05108e47968825'
+auth_token = os.environ['TWILIO_AUTH_TOKEN'] = '6554affbc745cb90bd319d60cd450bd1'
+client = Client(account_sid, auth_token)
+
 # Just use a subset of the classes
 classes = ["background", "person", "bicycle", "car", "motorcycle",
   "airplane", "bus", "train", "truck", "boat", "traffic light", "fire hydrant",
@@ -48,9 +58,6 @@ def speak(text):
   tts.save(filename)
   pygame.mixer.music.load(filename)
   pygame.mixer.music.play()
-    
-  while pygame.mixer.music.get_busy():
-    pass
   voiceCounter += 1
   if voiceCounter > 2:
     os.remove("voice" + str(voiceCounter-2) + ".mp3")
@@ -71,8 +78,11 @@ while True:
   # Define variables that will be used
   isPerson = False
   isWater = False
-  isToothbrush = False
+  isBook = False
   isCellPhone = False
+  drinking = False
+  reading = False
+  distracted = False
   
   for detection in cvOut[0,0,:,:]:
     score = float(detection[2])
@@ -82,7 +92,7 @@ while True:
  
       # If you want all classes to be labeled instead of just forks, spoons, and knives, 
       # remove this line below (i.e. remove line 65)
-      if classes[idx] == 'person' or classes[idx] == 'cell phone' or classes[idx] == 'toothbrush' or classes[idx] == 'bottle':          
+      if classes[idx] == 'person' or classes[idx] == 'cell phone' or classes[idx] == 'book' or classes[idx] == 'bottle':          
         left = detection[3] * cols
         top = detection[4] * rows
         right = detection[5] * cols
@@ -92,8 +102,8 @@ while True:
           isPerson = True
         if classes[idx] == 'bottle':
           isWater = True
-        if classes[idx] == 'toothbrush':
-          isToothbrush = True
+        if classes[idx] == 'book':
+          isBook = True
         if classes[idx] == 'cell phone':
           isCellPhone = True
             
@@ -103,13 +113,50 @@ while True:
         cv.putText(img, label, (int(left), int(y)),cv.FONT_HERSHEY_SIMPLEX, 0.5, colors[idx], 2)
         if (isPerson and isWater):
           cv.putText(img, "Chug, Chug, Chug, Chug", (100,100),cv.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0), 2)
-          speak("Chug, Chug, Chug, Chug")
-        if (isPerson and isToothbrush):
-          cv.putText(img, "Make sure to brush twice a day", (100,100),cv.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0), 2)
-          speak("Make sure to brush twice a day")
+          if drinking == False:
+            drinking = True
+            speak("Chug, Chug, Chug, Chug")
+            
+            message = client.messages.create(
+                              from_='+18883015401',
+                              body='Xiang is drinking water right now',
+                              to='+16463227786'
+                          )
+            
+            print(message.sid)
+            time.sleep(5)
+            drinking = False
+        if (isPerson and isBook):
+          cv.putText(img, "Reading is the key to success", (100,100),cv.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0), 2)
+          if reading == False:
+            reading = True
+            speak("Reading is the key to success")
+            
+            message = client.messages.create(
+                              from_='+18883015401',
+                              body='Xiang is reading right now',
+                              to='+16463227786'
+                          )
+            
+            print(message.sid)
+            time.sleep(5)
+            reading = False
         if (isPerson and isCellPhone):
           cv.putText(img, "Stop getting distracted by your phone", (100,100),cv.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0), 2)
-          speak("Stop getting distracted by your phone")
+          if distracted == False:
+            distracted = True
+            speak("Stop getting distracted by your phone")
+            
+            message = client.messages.create(
+                              from_='+18883015401',
+                              body='Xiang is being distracted right now',
+                              to='+16463227786'
+                          )
+            
+            print(message.sid)
+            time.sleep(5)
+            distracted = False
+          
 
   # Display the frame
   cv.imshow('my webcam', img)
