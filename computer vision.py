@@ -51,7 +51,6 @@ while True:
  
   # Run object detection
   cvOut = cvNet.forward()
- 
   # Go through each object detected and label it
   for detection in cvOut[0,0,:,:]:
     score = float(detection[2])
@@ -61,7 +60,7 @@ while True:
  
       # If you want all classes to be labeled instead of just forks, spoons, and knives, 
       # remove this line below (i.e. remove line 65)
-      if classes[idx] == 'person' or classes[idx] == 'cell phone' or classes[idx] == 'book':          
+      if classes[idx] == 'person' or classes[idx] == 'cell phone' or classes[idx] == 'book' or classes[idx] == 'bottle':          
         left = detection[3] * cols
         top = detection[4] * rows
         right = detection[5] * cols
