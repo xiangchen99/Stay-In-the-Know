@@ -19,8 +19,8 @@ from twilio.rest import Client
 
 # Find your Account SID and Auth Token at twilio.com/console
 # and set the environment variables. See http://twil.io/secure
-account_sid = os.environ['TWILIO_ACCOUNT_SID'] = 
-auth_token = os.environ['TWILIO_AUTH_TOKEN'] =
+account_sid = os.environ['TWILIO_ACCOUNT_SID'] ='AC10b029395650ed8afd05108e47968825'
+auth_token = os.environ['TWILIO_AUTH_TOKEN'] = '8f71c8e313d0fba164e4321e8ee67cdf'
 client = Client(account_sid, auth_token)
 
 # Just use a subset of the classes
@@ -47,7 +47,15 @@ pb  = 'frozen_inference_graph.pb'
 pbt = 'ssd_inception_v2_coco_2017_11_17.pbtxt'
  
 # Read the neural network
-cvNet = cv.dnn.readNetFromTensorflow(pb,pbt)   
+cvNet = cv.dnn.readNetFromTensorflow(pb,pbt)
+isPerson = False
+isWater = False
+isBook = False
+isCellPhone = False
+drinking = False
+reading = False
+distracted = False
+count = 0;
 
 #text to speech function
 voiceCounter = 0
@@ -61,7 +69,7 @@ def speak(text):
   voiceCounter += 1
   if voiceCounter > 2:
     os.remove("voice" + str(voiceCounter-2) + ".mp3")
- 
+
 while True:
  
   # Read in the frame
@@ -76,13 +84,7 @@ while True:
   cvOut = cvNet.forward()
   # Go through each object detected and label it
   # Define variables that will be used
-  isPerson = False
-  isWater = False
-  isBook = False
-  isCellPhone = False
-  drinking = False
-  reading = False
-  distracted = False
+
   
   for detection in cvOut[0,0,:,:]:
     score = float(detection[2])
@@ -112,10 +114,9 @@ while True:
         y = top - 15 if top - 15 > 15 else top + 15
         cv.putText(img, label, (int(left), int(y)),cv.FONT_HERSHEY_SIMPLEX, 0.5, colors[idx], 2)
         if (isPerson and isWater):
-          cv.putText(img, "Chug, Chug, Chug, Chug", (100,100),cv.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0), 2)
-          if drinking == False:
-            drinking = True
-            speak("Chug, Chug, Chug, Chug")
+          cv.putText(img, "Drink more water", (100,100),cv.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0), 2)
+          if drinking == False and isWater:
+            speak("Drink more water")
             
             message = client.messages.create(
                               from_='+18883015401',
@@ -124,12 +125,16 @@ while True:
                           )
             
             print(message.sid)
-            time.sleep(5)
-            drinking = False
+
+
+
+            drinking = True
+          isWater = False
+
         if (isPerson and isBook):
           cv.putText(img, "Reading is the key to success", (100,100),cv.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0), 2)
-          if reading == False:
-            reading = True
+          if reading == False and isBook:
+
             speak("Reading is the key to success")
             
             message = client.messages.create(
@@ -137,25 +142,37 @@ while True:
                               body='Xiang is reading right now',
                               to='+16463227786'
                           )
-            
+
             print(message.sid)
-            time.sleep(5)
-            reading = False
+
+            reading = True
+          isBook = False
         if (isPerson and isCellPhone):
           cv.putText(img, "Stop getting distracted by your phone", (100,100),cv.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0), 2)
-          if distracted == False:
-            distracted = True
+          if distracted == False and isCellPhone:
+
             speak("Stop getting distracted by your phone")
-            
+
             message = client.messages.create(
                               from_='+18883015401',
                               body='Xiang is being distracted right now',
                               to='+16463227786'
                           )
-            
+
             print(message.sid)
-            time.sleep(5)
-            distracted = False
+
+            distracted = True
+          isCellPhone = False
+
+      if (count == 150):
+        drinking = False
+        distracted = False
+        reading = False
+        count = 0
+      count = count + 1
+      print(count)
+
+
           
 
   # Display the frame
